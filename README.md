@@ -1,4 +1,4 @@
-#tpg offline APNs Server
+# tpg offline APNs Server
 
 ### Description
 
@@ -8,7 +8,7 @@
 
 You will need a MySql server.
 
-###Install
+### Install
 
 ```
 git clone https://github.com/RemyDCF/tpg-offline-apns.git
@@ -25,10 +25,10 @@ flask run
 
 Also, put your key.pem file in the same directory as notifications.py
 
-###Author
+### Author
 
 Rémy Da Costa Faro
 
-###License
+### License
 
 tpg offline and tpg offline APNs are available under the MIT license. See the LICENCE file for more information.
