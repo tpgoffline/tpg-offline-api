@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>tpg offline API</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.2/css/bootstrap.min.css" integrity="sha384-Smlep5jCw/wG7hdkwQ/Z5nLIefveQRIY9nfy6xoR1uRYBtpZgI6339F5dgvm/e9B" crossorigin="anonymous">
+	<style type="text/css">
+		#logo {
+			height: 200px;
+			border-radius: 100px;
+			box-shadow: 0 10px 100px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+		}
+	</style>
+	
+</head>
+<body>
+	<div class="row" style="align-items: center; margin-bottom: 50px; padding: 100px; font-size: 70px; justify-content: center; background: linear-gradient(90deg, #4b6cb7 0%, #182848 100%);color: white;">
+		<div class="col-md-auto"><img src="{{ url_for('static', filename='Circle.png') }}" id="logo"></div>
+		<div class="col-md-auto offset-md-1">tpg offline <strong>API</strong></div>
+	</div>
+	<div class="container" style="margin-top: 50px">
+		<div id="departs">
+			<h1>Départs</h1>
+			<hr>
+			<p><span class="badge badge-success">GET</span> <a href="https://api.tpgoffline.com/departures/&lt;stopCode&gt;?key=&lt;key&gt;">/departures/&lt;stopCode&gt;?key=&lt;key&gt;</a></p>
+			<p><strong>Entrée:</strong>
+			<ul>
+				<li><strong>key</strong>: Clé d'autorisation d'accès à l'API tpg. Vous pouvez la demander sur <a href="http://data.tpg.ch">data.tpg.ch</a></li>
+				<li><strong>stopCode</strong>: Code de l'arrêt (Exemple: CVIN, BAIR, PRBE, ...)</li>
+			</ul></p>
+			<p><strong>Sortie:</strong> Au format JSON
+			<ul>
+				<li><strong>line</strong>
+					<ul>
+						<li><strong>lineCode</strong>: Nom de la ligne</li>
+						<li><strong>destinationName</strong>: Nom de la destination</li>
+						<li><strong>destinationCode</strong>: Code de la destination</li>
+					</ul>
+				</li>
+				<li><strong>departureCode</strong>: Code de départ, vaut -1 si la valeur est indisponible</li>
+				<li><strong>leftTime</strong>: Temps restant avant le départ</li>
+				<li><strong>timestamp</strong>: Temps au format <a href="https://fr.wikipedia.org/wiki/ISO_8601">ISO 8601</a></li>
+				<li><strong>vehiculeNo</strong>: Identifient du véhicule, vaut -1 si la valeur est indisponible</li>
+				<li><strong>reliability</strong>: Indique la précision des données horaires, vaut F si il s'agit de temps réel, vaut T si il s'agit d'horaires théoriques. Note: Tous les départs du réseau TAC auront une valeur T</li>
+				<li><strong>characteristics</strong>: Indique l'accessibilité du véhicule, vaut PMR si le véhicule est accessible aux personnes à mobilité réduite, est vide dans le cas contraire</li>
+				<li><strong>platform</strong>: Indique le quai de départ, si applicable. Autrement, la valeur vaut null</li>
+				<li><strong>wifi</strong>: Indique la présence de wifi dans le véhicule. Vaut true ou false</li>
+			</ul></p>
+			<p><strong>Exemple:</strong> <a href="https://api.tpgoffline.com/departures/MOIL?key=&lt;key&gt;">/departures/MOIL?key=&lt;key&gt;</a><br>
+				<pre><code>
+{
+  "departures": [
+    {
+      "characteristics": "PMR",
+      "departureCode": -1,
+      "leftTime": "1",
+      "line": {
+        "destinationCode": "",
+        "destinationName": "Gaillard-Fossard",
+        "lineCode": "3"
+      },
+      "operator": "tac",
+      "platform": null,
+      "reliability": "T",
+      "timestamp": "2018-07-26T15:39:00",
+      "vehiculeNo": -1,
+      "wifi": false
+    },
+    {
+      "characteristics": "PMR",
+      "departureCode": 187840,
+      "leftTime": "2",
+      "line": {
+        "destinationCode": "PALETTES",
+        "destinationName": "Palettes",
+        "lineCode": "12"
+      },
+      "operator": "tpg",
+      "platform": "1",
+      "reliability": "F",
+      "timestamp": "2018-07-30T15:40:05+0200",
+      "timestampInt": 1532961605,
+      "vehiculeNo": 1810,
+      "wifi": false
+    },
+    ...
+  ]
+}
+				</code></pre>
+			</p>
+			<h1>Perturbations</h1>
+			<hr>
+			<p><span class="badge badge-success">GET</span> <a href="https://api.tpgoffline.com/disruptions?key=&lt;key&gt;">/disruptions?key=&lt;key&gt;</a></p>
+			<p><strong>Entrée:</strong>
+			<ul>
+				<li><strong>key</strong>: Clé d'autorisation d'accès à l'API tpg. Vous pouvez la demander sur <a href="http://data.tpg.ch">data.tpg.ch</a></li>
+			</ul></p>
+			<p><strong>Sortie:</strong> Au format JSON
+			<ul>
+				<li><strong>consequence</strong>: Description de la perturbation</li>
+				<li><strong>lineCode</strong>: Ligne concernée par la perturbation</li>
+				<li><strong>nature</strong>: Nature de la perturbation</li>
+				<li><strong>place</strong>: Endroit concerné par la perturbation. Peut être vide, mais jamais égal à null</li>
+				<li><strong>timestamp</strong>: Début de la perturbation</li>
+			</ul></p>
+
+			<p><strong>Exemple:</strong><br>
+				<pre><code>
+{
+  "disruptions": [
+    {
+      "consequence": "La ligne 28 est détournée dans les deux sens entre Château-Bloch et Grand-Champ via route du Bois-des-Frères. Arrêt Lignon-Tours non desservi, Lignon-Cité déplacé en commun avec la ligne 7.",
+      "lineCode": "28",
+      "nature": "En raison de travaux",
+      "place": "",
+      "timestamp": "2018-07-30T04:02:00+0200"
+    },
+    {
+      "consequence": "La ligne 42 est déviée entre Au Contour et Foulon dans les deux sens. Arrêts En Louche, Perly-Village et Perly-Mairie non desservis.",
+      "lineCode": "42",
+      "nature": "En raison de travaux",
+      "place": "Secteur Village de Perly",
+      "timestamp": "2018-07-30T04:55:00+0200"
+    },
+    ...
+  ],
+  "timestamp": "2018-07-30T15:40:58+0200"
+}
+				</code></pre>
+			</p>
+		</div>
+		
+	</div>
+	<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.2/js/bootstrap.min.js" integrity="sha384-o+RDsa0aLu++PJvFqy8fFScvbHFLtbvScb8AjopnFD+iEQ7wo/CG0xlczd+2O/em" crossorigin="anonymous"></script>
+</body>
+</html>
