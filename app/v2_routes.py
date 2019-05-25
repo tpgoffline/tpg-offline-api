@@ -26,6 +26,7 @@ def index():
 
 
 @app.route("/departures/<stopCode>", methods=["GET"])
+@app.route("/v2/departures/<stopCode>", methods=["GET"])
 def getDepartures(stopCode):
     key = request.values.get("key")
     if key == None:
@@ -250,6 +251,7 @@ def getDepartures(stopCode):
 
 
 @app.route("/disruptions", methods=["GET"])
+@app.route("/v2/disruptions", methods=["GET"])
 def getDisruptions():
     key = request.values.get("key")
     if key == None:
@@ -303,13 +305,13 @@ def getDisruptions():
 def getStopByString(string):
     try:
         assert type(string) == str
-        stopsByCode = [x for x in app.stops if x["code"] == string]
+        stopsByCode = [x for x in stops if x["code"] == string]
         if len(stopsByCode) > 0:
             return stopsByCode[0]["sbbId"]
-        stopsBySBBId = [x for x in app.stops if x["sbbId"] == string]
+        stopsBySBBId = [x for x in stops if x["sbbId"] == string]
         if len(stopsBySBBId) > 0:
             return stopsBySBBId[0]["sbbId"]
-        stopsByAppId = [x for x in app.stops if x["appId"] == string]
+        stopsByAppId = [x for x in stops if x["appId"] == string]
         if len(stopsByAppId) > 0:
             return stopsByAppId[0]["sbbId"]
         return None
@@ -318,11 +320,16 @@ def getStopByString(string):
 
 
 @app.route("/routes", methods=["GET"])
+@app.route("/v2/routes", methods=["GET"])
 def getRoutes():
     departureStop = getStopByString(request.values.get("departureStop"))
     arrivalStop = getStopByString(request.values.get("arrivalStop"))
-    departureTime = request.values.get("arrivalStop")
+    departureTime = request.values.get("departureTime")
+    if departureTime == None:
+        departureTime = datetime.now().isoformat()
     numberOfRoutes = request.values.get("numberOfRoutes")
+    if numberOfRoutes == None:
+        numberOfRoutes = 1
     try:
         departureStop = int(departureStop)
     except:
@@ -333,10 +340,12 @@ def getRoutes():
         return jsonify({"error": "arrivalStop is incorrect"}), 400
     try:
         departureTime = dateutil.parser.parse(departureTime)
-        departureSeconds = (
-            departureTime
-            - departureTime.replace(hour=0, minute=0, second=0, microsecond=0)
-        ).total_seconds()
+        departureSeconds = int(
+            (
+                departureTime
+                - departureTime.replace(hour=0, minute=0, second=0, microsecond=0)
+            ).total_seconds()
+        )
         day = departureTime.weekday()
     except:
         return jsonify({"error": "departureTime is incorrect"}), 400
@@ -346,10 +355,12 @@ def getRoutes():
     except:
         return jsonify({"error": "numberOfRoutes is incorrect"}), 400
     routes = []
-    for x in range(6):
+    for _ in range(numberOfRoutes):
         route = tpgRoutes.compute_route(
             departureStop, arrivalStop, departureSeconds, day
         )
+        if route == None:
+            return jsonify(routes)
         routes.append(
             {
                 "departureTime": (
@@ -358,7 +369,7 @@ def getRoutes():
                 ).isoformat(),
                 "arrivalTime": (
                     departureTime.replace(hour=0, minute=0, second=0, microsecond=0)
-                    + timedelta(seconds=route[-1].arrivalTime)
+                    + timedelta(seconds=route[-1].arrival_time)
                 ).isoformat(),
                 "path": [
                     {
@@ -377,11 +388,11 @@ def getRoutes():
                             + timedelta(seconds=y.arrival_time)
                         ).isoformat(),
                         "line": y.line,
-                        "destination_stop": y.destination_stop,
+                        "destinationStop": y.destination_stop,
                     }
                     for y in route
                 ],
             }
         )
-        departureTime = route[0].departure_time + 1
-    return
+        departureSeconds = route[0].departure_time + 1
+    return jsonify(routes)
