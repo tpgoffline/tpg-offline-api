@@ -1,4 +1,4 @@
-flask
-python-dateutil
-requests
-tpgroutes
+Flask==1.0.2
+python-dateutil==2.7.5
+requests==2.20.1
+tpgroutes==1.0.5
